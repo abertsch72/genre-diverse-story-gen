@@ -96,11 +96,11 @@ train_data, test_data = load_prompts()
 #print(train_data["original"][65:70])
 #print(train_data["shifted"][65:70])
 
-train_data["original"] = train_data["original"][args.start_train:args.end_train]
-train_data["shifted"] = train_data["shifted"][args.start_train:args.end_train]
+train_data["prompt"] = train_data["prompt"][args.start_train:args.end_train]
+train_data["story"] = train_data["story"][args.start_train:args.end_train]
 
-test_data["original"] = test_data["original"][args.start:args.end]
-test_data["shifted"] = test_data["shifted"][args.start:args.end]
+test_data["prompt"] = test_data["prompt"][args.start:args.end]
+test_data["story"] = test_data["story"][args.start:args.end]
 nltk.download("punkt", quiet=True)
 metric = datasets.load_metric("rouge")
 
@@ -112,7 +112,7 @@ NUM_EPOCHS = args.num_epochs
 
 
 def batch_tokenize_preprocess(batch, tokenizer, max_source_length, max_target_length, train=False):
-    source, target = batch['original'], batch['shifted']
+    source, target = batch['prompt'], batch['story']
 
     source_tokenized = tokenizer(
         source, padding="max_length", truncation=True, max_length=max_source_length
@@ -236,7 +236,7 @@ if args.do_train and args.save_model:
 
 def generate_output(test_samples, trainer):
     inputs = tokenizer(
-        test_samples["original"],
+        test_samples["prompt"],
         padding="max_length",
         truncation=True,
         max_length=args.encoder_max_len,
