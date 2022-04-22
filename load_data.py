@@ -1,7 +1,7 @@
 # Credit to: https://www.kaggle.com/code/ratthachat/writingprompts-combine-one-line-data-for-gpt2/notebook
 
 
-def load_prompts(num_words = None, dir = "../writingPrompts/"):
+def load_prompts(num_words = None, dir = "data/"):
 
     # num_words: The number of words to be used from each story (when None is passed full stories are returned)
     # dir: Directory of folder containing prompts
@@ -25,4 +25,5 @@ def load_prompts(num_words = None, dir = "../writingPrompts/"):
 
         data[directories[name_id]] = {"prompt": prompts, "story": stories}
         
-    return data["train"], data["test"], data["valid"]
+    return data["train"], data["valid"], data["test"],
+

@@ -84,7 +84,7 @@ output_dir = args.output_dir if args.output_dir is not None else "outputs/" + ar
 
 
 if args.wandb:
-    wandb.init(name=args.name, group=args.group, entity="gormleylab", project=args.project)
+    wandb.init(name=args.name, group=args.group, project=args.project)
 
 
 def model_init():
@@ -92,7 +92,7 @@ def model_init():
 
 tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
-train_data, test_data = load_prompts()
+train_data, test_data, _= load_prompts()
 #print(train_data["original"][65:70])
 #print(train_data["shifted"][65:70])
 
