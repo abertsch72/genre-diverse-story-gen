@@ -26,18 +26,8 @@ import numpy as np
 import torch
 
 from transformers import (
-    CTRLLMHeadModel,
-    CTRLTokenizer,
     GPT2LMHeadModel,
     GPT2Tokenizer,
-    OpenAIGPTLMHeadModel,
-    OpenAIGPTTokenizer,
-    TransfoXLLMHeadModel,
-    TransfoXLTokenizer,
-    XLMTokenizer,
-    XLMWithLMHeadModel,
-    XLNetLMHeadModel,
-    XLNetTokenizer,
 )
 from src import GenreLogitsProcessor
 
