@@ -18,6 +18,12 @@
 """
 
 
+"""
+to run our minimal test:
+python3 generation.py --model_type gpt2 --model_name_or_path gpt2 --prompt "I wish I could " --genre "fantasy"
+
+"""
+
 import argparse
 import logging
 from typing import Text
@@ -29,7 +35,7 @@ from transformers import (
     GPT2LMHeadModel,
     GPT2Tokenizer,
 )
-from src import GenreLogitsProcessor
+from GenreLogitsProcessor import InfluenceGenreLogitsProcessor
 
 
 logging.basicConfig(
@@ -104,8 +110,8 @@ def main():
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
     parser.add_argument("--num_return_sequences", type=int, default=1, help="The number of samples to generate.")
     parser.add_argument("--genre", type=Text, default=None, help="genre for genre-aware decoding")
-    parser.add_argument("--method", type=Text, options=["MLE", "MAP"], default="MAP", help="method for genre-aware decoding")
-    parser.add_argument("--lambda", type=float, default=0.1, help="lambda_val for genre-aware decoding")
+    parser.add_argument("--method", type=Text, choices=["MLE", "MAP"], default="MAP", help="method for genre-aware decoding")
+    parser.add_argument("--lambda_val", type=float, default=0.1, help="lambda_val for genre-aware decoding")
     parser.add_argument(
         "--fp16",
         action="store_true",
@@ -158,7 +164,7 @@ def main():
         do_sample=True,
         #num_beams=args.num_return_sequences,
         num_return_sequences=args.num_return_sequences,
-        logits_processor=[GenreLogitsProcessor(genre=args.genre, method=args.method, lambda_val=args.lambda_val)] if args.genre is not None else [],
+        logits_processor=[InfluenceGenreLogitsProcessor(genre=args.genre, method=args.method, lambda_val=args.lambda_val)] if args.genre is not None else [],
     )
 
     # Remove the batch dimension when returning multiple sequences
