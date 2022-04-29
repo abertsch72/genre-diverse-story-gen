@@ -16,9 +16,9 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
     def __init__(self, genre: Text, method: Text = "MAP", lambda_val: float = 0.1):
         count_matrix = np.load("./../count-matrix-files/count-matrix.npy")
         total_genre_counts = np.load("./../count-matrix-files/total-genre-counts.npy")
-        bookcorp_count = 
-        bookcorp_total_count =
-        valid_genres = ["Romance", "Fantacy"] 
+        bookcorp_count = None
+        bookcorp_total_count = None
+        valid_genres = ["romance", "fantasy"]
         valid_methods = ["MLE", "MAP"]
         if genre not in valid_genres:
             raise ValueError(f"Genre {genre} is not in list of valid genres: {valid_genres}")
@@ -35,21 +35,15 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
             self.probabilities = (count_matrix[:, self.genre_index] + alpha - np.ones((50257, 1))/
                                 total_genre_counts[self.genre_index] + alpha + beta - np.full((50257, 1), 2))
 
+        assert self.probabilities.shape == torch.size([1, 50257])
+        # TODO: make our scores log probabilities
+
         self.lambda_val = lambda_val #TODO: is the default I've provided (0.1) the best value?
 
+
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-        score = torch.gather(scores, 1, input_ids)
-
-        # TODO: what's the shape of score? is it (1, 1, num_tokens_in_vocabulary), or something else?
-        # ^ write this in comments so we have it for debugging
-
-        # TODO: are scores log probabilties? if so, make our probabilities log probs too (do this in init!)
-
-
-        # TODO: make our probabilities line up with the shape of score, so that each probability corresponds to the right stuff
-
+        # shape of scores is torch.Size([1, 50257]); they appear to be un-calibrated negative scores (so make ours log probs too)
 
         # TODO: combine our probabilities with the scores, using the formula from our presentation
 
-        scores.scatter_(1, input_ids, score)
         return scores
