@@ -14,11 +14,14 @@ print(corpus)
 count_matrix = np.zeros((max_input_id, 1))
 d = dict()  # keys are file names, value is input ids array
 text = corpus['train']["text"]
+#print(text[0])
 stepsize = 1000
 for subset in range(0, len(text), stepsize):
-    subtext = text[subset, min(subset+stepsize, len(text))]
-    print(len(subtext))
+    subtext = " ".join(text[subset:min(subset+stepsize, len(text))])
+    #print(subtext)
     token_ids = tokenizer(subtext)["input_ids"]
+    #print(token_ids)
+    #print(type(token_ids))
     id_arr = np.array(token_ids)
     unique_ids = set(token_ids)
 
