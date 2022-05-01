@@ -6,12 +6,15 @@ import pickle
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
 max_input_id = 50257
-genre_folders = ["1206", "1235"]
+genre_folders = ["1206", "1235", "1213", "1126",
+                 "1018", "892", "883", "882",
+                 "879", "877", "874", "873", "871", "61"]
 
-count_matrix = np.zeros((max_input_id, len(genre_folders)))
+count_matrix = np.zeros((max_input_id, len(genre_folders)+1))
 d = dict()  # keys are file names, value is input ids array
 genre_index = 0
 for genre_name in genre_folders:
+    print(genre_name)
     for filename in os.listdir("data/" + genre_name):
         print(filename)
         with open(os.path.join("data/" + genre_name, filename), 'r', errors='ignore') as f:
@@ -28,14 +31,15 @@ for genre_name in genre_folders:
 
     genre_index += 1
 
-with open('tok_ids.pickle', 'wb') as handle:
-    pickle.dump(d, handle, protocol=pickle.HIGHEST_PROTOCOL)
+# last col is the total count of word w across all genres
+count_matrix[:, len(genre_folders)] = np.sum(count_matrix, axis=1)
 
 
-# with open(f'learning_rate={learning_rate}.pickle', 'rb') as handle:
-#             d = pickle.load(handle)
+# with open('tok_ids.pickle', 'wb') as handle:
+#     pickle.dump(d, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-print("done!:)")
+
+# print("done!:)")
 np.save('count-matrix.npy', count_matrix)
 
 # X = np.load('count-matrix.npy')
@@ -45,4 +49,3 @@ np.save('count-matrix.npy', count_matrix)
 # np.save('total-genre-counts.npy', total_genre_counts)
 
 # genre_counts = np.load("total-genre-counts.npy")
-# print(genre_counts)
