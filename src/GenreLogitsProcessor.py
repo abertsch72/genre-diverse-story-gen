@@ -25,10 +25,12 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
     def __init__(self, genre: Text, method: Text = "MAP", lambda_val: float = 0.00001):
         count_matrix = np.load("./../count-matrix-files/count-matrix.npy")
         total_genre_counts = np.load("./../count-matrix-files/total-genre-counts.npy")
-        bookcorp_count = None
-        bookcorp_total_count = None
-        valid_genres = ["fantasy", "romance"]
-        valid_methods = ["MLE", "MAP"]
+        bookcorp_count = np.load("./../count-matrix-files/bookcorpus-counts.npy")
+        bookcorp_total_count = np.sum(bookcorp_count)
+       
+
+        valid_genres = ["fantasy", "romance", "scifi", "sports", "YA", "adventure", "horror", "comedy", "mystery", "religious", "thriller", "urban", "western", "children's"]
+        valid_methods = ["MLE", "MAP", "newMLE"]
         if genre not in valid_genres:
             raise ValueError(f"Genre {genre} is not in list of valid genres: {valid_genres}")
         if method not in valid_methods:
@@ -38,18 +40,22 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
         self.genre_index = valid_genres.index(self.genre)
         if method == "MLE":
             self.probabilities = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index] # divided by token over all genres TODO: load in the correct list of probabilities, based on genre and method
-            ind = np.argpartition(self.probabilities.reshape((50257,)), -500)[-500:-200]
-            ind =  ind[np.argsort(self.probabilities[ind])]
-            print([tokenizer.decode(x) for x in ind])
+            # ind = np.argpartition(self.probabilities.reshape((50257,)), -500)[-500:-200]
+            # ind =  ind[np.argsort(self.probabilities[ind])]
+            #print([tokenizer.decode(x) for x in ind])
 
+        elif method == "newMLE":
+            num = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index]
+            denom = count_matrix[:, -1]
+            self.probabilities = np.where(denom == 0, 0, num/denom)
+            self.probabilities = self.probabilities / np.sum(self.probabilities)
         
         else: #MAP
-            # alpha = 100# count of tok1  -- orig bookcorp
-            # beta = 100# total token count - alpha   -- orig bookcorp
-            self.probabilities = (count_matrix[:, self.genre_index] + alpha - np.ones((50257, 1))/
-                                total_genre_counts[self.genre_index] + alpha + beta - np.full((50257, 1), 2))
+            alpha = bookcorp_count.reshape((50257,))  # count of tok1  -- orig bookcorp
+            beta = np.full((50257,), bookcorp_total_count) # total token count - alpha   -- orig bookcorp
+            self.probabilities = (count_matrix[:, self.genre_index] + alpha - np.ones((50257,))/
+                                total_genre_counts[self.genre_index] + alpha + beta - np.full((50257,), 2))
 
-        #print(self.probabilities.shape)
         assert self.probabilities.shape == (50257,)
         # TODO: make our scores log probabilities
 
