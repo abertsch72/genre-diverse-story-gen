@@ -88,7 +88,8 @@ def main():
     )
 
     parser.add_argument("--prompt", type=str, default="")
-    parser.add_argument("--length", type=int, default=300)
+    parser.add_argument("--length", type=int, default=1000)
+    parser.add_argument("--scale", type=int, default=14)
     parser.add_argument("--stop_token", type=str, default=None, help="Token at which text generation is stopped")
 
     parser.add_argument(
@@ -108,7 +109,7 @@ def main():
 
     parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
-    parser.add_argument("--num_return_sequences", type=int, default=5, help="The number of samples to generate.")
+    parser.add_argument("--num_return_sequences", type=int, default=2, help="The number of samples to generate.")
     parser.add_argument("--genre", type=Text, default=None, help="genre for genre-aware decoding")
     parser.add_argument("--method", type=Text, choices=["MLE", "MAP", "newMLE"], default="MAP", help="method for genre-aware decoding")
     parser.add_argument("--lambda_val", type=float, default=0.00001, help="lambda_val for genre-aware decoding")
@@ -191,7 +192,7 @@ def main():
 
         generated_sequences.append(total_sequence)
         print(total_sequence)
-        with open('./../outputs/genre-stories/sports-MAP-0.6.txt', 'a') as f:
+        with open('./../outputs/genre-stories/children-MAP-0.8.txt', 'a') as f:
             f.write(total_sequence)
             f.write('\n')
 

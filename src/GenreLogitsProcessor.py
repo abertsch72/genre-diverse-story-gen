@@ -22,7 +22,7 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
             paper](https://arxiv.org/pdf/1909.05858.pdf) for more details.
     """
 
-    def __init__(self, genre: Text, method: Text = "MAP", lambda_val: float = 0.00001):
+    def __init__(self, genre: Text, method: Text = "MAP", lambda_val: float = 0.00001, scale: int = 14):
         count_matrix = np.load("./../count-matrix-files/count-matrix.npy")
         total_genre_counts = np.load("./../count-matrix-files/total-genre-counts.npy")
         bookcorp_count = np.load("./../count-matrix-files/bookcorpus-counts.npy")
@@ -46,15 +46,41 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
 
         elif method == "newMLE":
             num = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index]
-            denom = count_matrix[:, -1]
+            denom = count_matrix[:, -1]/ np.sum(total_genre_counts)
             self.probabilities = np.where(denom == 0, 0, num/denom)
             self.probabilities = self.probabilities / np.sum(self.probabilities)
+            ind = np.argpartition(self.probabilities.reshape((50257,)), -100)[-100:]
+            ind =  ind[np.argsort(self.probabilities[ind])]
+            print([tokenizer.decode(x) for x in ind])
+            print(self.probabilities[ind])
         
         else: #MAP
-            alpha = bookcorp_count.reshape((50257,))  # count of tok1  -- orig bookcorp
-            beta = np.full((50257,), bookcorp_total_count) # total token count - alpha   -- orig bookcorp
-            self.probabilities = (count_matrix[:, self.genre_index] + alpha - np.ones((50257,))/
-                                total_genre_counts[self.genre_index] + alpha + beta - np.full((50257,), 2))
+            #MLE
+            num = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index]
+            denom = count_matrix[:, -1]/ np.sum(total_genre_counts)
+            mle = np.where(denom == 0, 0, num/denom)
+            mle = mle / np.sum(mle)
+
+            alpha = bookcorp_count.reshape((50257,)) / scale # count of tok1  -- orig bookcorp
+            beta = (np.full((50257,), bookcorp_total_count) - alpha) / scale # total token count - alpha   -- orig bookcorp
+            denom1 = (total_genre_counts[self.genre_index] + alpha + beta - np.full((50257,), 2))
+            num1 = (count_matrix[:, self.genre_index] + alpha - np.ones((50257,)))
+            num = np.where(denom1 == 0, num1, num1/denom1)
+
+            # denom2 = (np.sum(total_genre_counts) + alpha + beta - np.full((50257,), 2))
+            # num2 = (count_matrix[:, -1] + alpha - np.ones((50257,)))
+            # denom =  np.where(denom2 == 0, num2, num2/denom2)  
+            # self.probabilities = np.where(denom==0, num, num/denom)
+            
+            self.probabilities = np.where(mle == 0, num, num / mle)
+            self.probabilities = np.where(self.probabilities < 0, 0, self.probabilities)
+            self.probabilities = self.probabilities / np.sum(self.probabilities)
+    
+
+            ind = np.argpartition(self.probabilities.reshape((50257,)), -100)[-100:]
+            ind =  ind[np.argsort(self.probabilities[ind])]
+            print([tokenizer.decode(x) for x in ind])
+            print(self.probabilities[ind])
 
         assert self.probabilities.shape == (50257,)
         # TODO: make our scores log probabilities
