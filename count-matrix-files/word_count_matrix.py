@@ -67,3 +67,9 @@ X = np.load('count-matrix.npy')
 genre_unique_counts = np.count_nonzero(X, axis=0)
 np.save('genre-unique-counts.npy', genre_unique_counts)
 '''
+
+# count total number of unique tokens across all genres
+'''
+X = np.load('count-matrix.npy')
+print(50257 - len(np.where(~X.any(axis=1))[0]))
+'''
