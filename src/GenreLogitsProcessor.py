@@ -18,7 +18,7 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
         total_genre_counts = np.load("./../count-matrix-files/total-genre-counts.npy")
         bookcorp_count = None
         bookcorp_total_count = None
-        valid_genres = ["romance", "fantasy"]
+        valid_genres = ["fantasy", "romance", "scifi", "sports", "YA", "adventure", "horror", "comedy", "mystery", "religious", "thriller", "urban", "western", "children's"]
         valid_methods = ["MLE", "MAP"]
         if genre not in valid_genres:
             raise ValueError(f"Genre {genre} is not in list of valid genres: {valid_genres}")
