@@ -88,7 +88,7 @@ def main():
     )
 
     parser.add_argument("--prompt", type=str, default="")
-    parser.add_argument("--length", type=int, default=20)
+    parser.add_argument("--length", type=int, default=300)
     parser.add_argument("--stop_token", type=str, default=None, help="Token at which text generation is stopped")
 
     parser.add_argument(
@@ -100,7 +100,7 @@ def main():
     parser.add_argument(
         "--repetition_penalty", type=float, default=1.0, help="primarily useful for CTRL model; in that case, use 1.2"
     )
-    parser.add_argument("--k", type=int, default=0)
+    parser.add_argument("--k", type=int, default=55)
     parser.add_argument("--p", type=float, default=0.9)
 
     parser.add_argument("--prefix", type=str, default="", help="Text added prior to input.")
@@ -108,10 +108,10 @@ def main():
 
     parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
-    parser.add_argument("--num_return_sequences", type=int, default=1, help="The number of samples to generate.")
+    parser.add_argument("--num_return_sequences", type=int, default=5, help="The number of samples to generate.")
     parser.add_argument("--genre", type=Text, default=None, help="genre for genre-aware decoding")
-    parser.add_argument("--method", type=Text, choices=["MLE", "MAP"], default="MAP", help="method for genre-aware decoding")
-    parser.add_argument("--lambda_val", type=float, default=0.1, help="lambda_val for genre-aware decoding")
+    parser.add_argument("--method", type=Text, choices=["MLE", "MAP", "newMLE"], default="MAP", help="method for genre-aware decoding")
+    parser.add_argument("--lambda_val", type=float, default=0.00001, help="lambda_val for genre-aware decoding")
     parser.add_argument(
         "--fp16",
         action="store_true",
@@ -133,7 +133,8 @@ def main():
     except KeyError:
         raise KeyError("the model {} you specified is not supported. You are welcome to add it and open a PR :)")
 
-    tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
+    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
     model = model_class.from_pretrained(args.model_name_or_path)
     model.to(args.device)
 
@@ -190,6 +191,9 @@ def main():
 
         generated_sequences.append(total_sequence)
         print(total_sequence)
+        with open('./../outputs/genre-stories/sports-MAP-0.6.txt', 'a') as f:
+            f.write(total_sequence)
+            f.write('\n')
 
     return generated_sequences
 
