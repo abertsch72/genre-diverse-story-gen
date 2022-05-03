@@ -45,7 +45,7 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
             #print([tokenizer.decode(x) for x in ind])
 
         elif method == "newMLE":
-            num = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index]
+            num = np.where(total_genre_counts[self.genre_index] == 0, 0, count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index])
             denom = count_matrix[:, -1]/ np.sum(total_genre_counts)
             self.probabilities = np.where(denom == 0, 0, num/denom)
             self.probabilities = self.probabilities / np.sum(self.probabilities)
@@ -56,28 +56,28 @@ class InfluenceGenreLogitsProcessor(LogitsProcessor):
         
         else: #MAP
             #MLE
-            num = count_matrix[:, self.genre_index]/total_genre_counts[self.genre_index]
             denom = count_matrix[:, -1]/ np.sum(total_genre_counts)
-            mle = np.where(denom == 0, 0, num/denom)
-            mle = mle / np.sum(mle)
-
-            alpha = bookcorp_count.reshape((50257,)) / scale # count of tok1  -- orig bookcorp
-            beta = (np.full((50257,), bookcorp_total_count) - alpha) / scale # total token count - alpha   -- orig bookcorp
-            denom1 = (total_genre_counts[self.genre_index] + alpha + beta - np.full((50257,), 2))
-            num1 = (count_matrix[:, self.genre_index] + alpha - np.ones((50257,)))
-            num = np.where(denom1 == 0, num1, num1/denom1)
-
-            # denom2 = (np.sum(total_genre_counts) + alpha + beta - np.full((50257,), 2))
-            # num2 = (count_matrix[:, -1] + alpha - np.ones((50257,)))
-            # denom =  np.where(denom2 == 0, num2, num2/denom2)  
-            # self.probabilities = np.where(denom==0, num, num/denom)
             
-            self.probabilities = np.where(mle == 0, num, num / mle)
+            alpha = bookcorp_count.reshape((50257,)) / scale # count of tok1  -- orig bookcorp
+            beta = (bookcorp_total_count - alpha) / scale  # total token count - alpha   -- orig bookcorp
+            denom1 = (total_genre_counts[self.genre_index] + alpha + beta - 2)
+            print(total_genre_counts[self.genre_index], alpha, beta)
+            num1 = (count_matrix[:, self.genre_index] + alpha - 1)
+            num = num1/denom1
+
+            # denom2 = (np.full((50257,), np.sum(total_genre_counts)) + alpha + beta - np.full((50257,), 2))
+            # num2 = (count_matrix[:, -1] + alpha - np.ones((50257,)))
+            # denom =  np.where(denom2 == 0, 0, num2/denom2)  
+
+            #self.probabilities = np.where(denom==0, 0, num/denom)
+            self.probabilities = np.where(denom == 0, 0, num / denom)
+            
+            # self.probabilities = np.where(mle == 0, num, num / mle)
             self.probabilities = np.where(self.probabilities < 0, 0, self.probabilities)
             self.probabilities = self.probabilities / np.sum(self.probabilities)
     
 
-            ind = np.argpartition(self.probabilities.reshape((50257,)), -100)[-100:]
+            ind = np.argpartition(self.probabilities.reshape((50257,)), -200)[-200:]
             ind =  ind[np.argsort(self.probabilities[ind])]
             print([tokenizer.decode(x) for x in ind])
             print(self.probabilities[ind])

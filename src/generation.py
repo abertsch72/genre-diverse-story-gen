@@ -166,7 +166,7 @@ def main():
         do_sample=True,
         #num_beams=args.num_return_sequences,
         num_return_sequences=args.num_return_sequences,
-        logits_processor=[InfluenceGenreLogitsProcessor(genre=args.genre, method=args.method, lambda_val=args.lambda_val)] if args.genre is not None else [],
+        logits_processor=[InfluenceGenreLogitsProcessor(genre=args.genre, method=args.method, lambda_val=args.lambda_val, scale = args.scale)] if args.genre is not None else [],
     )
 
     # Remove the batch dimension when returning multiple sequences
